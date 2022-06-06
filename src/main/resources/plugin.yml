@@ -1,0 +1,5 @@
+name: {{name}}
+version: {{version}}
+author: Bradley Steele
+main: gg.tracer.commons.TracerCommons
+api-version: 1.14

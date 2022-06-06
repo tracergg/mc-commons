@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+group 'gg.tracer.commons'
+version '1.0.2'
+
+repositories {
+    mavenCentral()
+
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
+}
+
+processResources {
+    logger.lifecycle("version: ${project.version}")
+
+    outputs.upToDateWhen { false } // don't cache this task
+
+    eachFile { details ->
+        if (details.path == 'plugin.yml') {
+            filter { line -> line
+                    .replace('{{name}}', 'TracerCommons')
+                    .replace('{{version}}', project.version)
+            }
+        }
+    }
+}
