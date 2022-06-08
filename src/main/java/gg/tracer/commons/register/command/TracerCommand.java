@@ -44,6 +44,10 @@ public abstract class TracerCommand implements Registrable, TracerCommandExecuto
             child.plugin = plugin;
             child.parent = this;
 
+            if (child.permissionDenyMsg == null) {
+                child.permissionDenyMsg = permissionDenyMsg;
+            }
+
             child.internalRegister();
             child.register();
         }
