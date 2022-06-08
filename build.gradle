@@ -2,8 +2,8 @@ plugins {
     id 'java'
 }
 
-group 'gg.tracer.commons'
-version '1.0.2'
+group 'gg.tracer.minecraft'
+version '1.0.3'
 
 repositories {
     mavenCentral()
