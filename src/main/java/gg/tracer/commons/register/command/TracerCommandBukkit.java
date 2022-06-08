@@ -7,8 +7,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
 
 import java.lang.reflect.Field;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Bradley Steele

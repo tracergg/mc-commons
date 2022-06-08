@@ -51,7 +51,24 @@ public abstract class TracerCommand implements Registrable, TracerCommandExecuto
         if (isRoot()) {
             cmd = new TracerCommandBukkit(this);
 
-            if (TracerCommandBukkit.getCommandMap().register(plugin.getName(), cmd)) {
+            // unregister existing command from other plugins
+            var map = TracerCommandBukkit.getCommandMap();
+            var known = TracerCommandBukkit.getKnownCommands();
+
+            Set<String> remove = new HashSet<>();
+
+            for (var entry : known.entrySet()) {
+                if (aliases.contains(entry.getKey().toLowerCase())) {
+                    cmd.unregister(map);
+                    remove.add(entry.getKey());
+                }
+            }
+
+            for (String alias : remove) {
+                known.remove(alias);
+            }
+
+            if (map.register(plugin.getName(), cmd)) {
                 List<String> aliases = new ArrayList<>(this.aliases);
                 aliases.remove(getName());
 
@@ -292,7 +309,10 @@ public abstract class TracerCommand implements Registrable, TracerCommandExecuto
 
     public void setAliases(Collection<? extends String> aliases) {
         this.aliases.clear();
-        this.aliases.addAll(aliases);
+
+        for (String alias : aliases) {
+            this.aliases.add(alias.toLowerCase());
+        }
     }
 
     public void setAliases(String... aliases) {
