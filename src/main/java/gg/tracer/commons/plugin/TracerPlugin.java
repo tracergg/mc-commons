@@ -68,20 +68,20 @@ public abstract class TracerPlugin extends JavaPlugin {
         return getServer().getPluginManager();
     }
 
-    public void register(Registrable registrable) {
+    public boolean register(Registrable registrable) {
         if (registrable == null) {
             logger.error("Attempted to register registrable object: &cnull&r");
-            return;
+            return false;
         }
 
         Reflection.setFieldValue(registrable, "plugin", this);
 
         try {
             registrable.internalRegister();
-        } catch (Exception e) {
-            logger.error("Failed to register registrable object &c%s&r:", registrable.getClass().getSimpleName());
-            logger.exception(e);
-            return;
+        } catch (Throwable t) {
+            logger.error("Failed to register (internal) registrable object &c%s&r:", registrable.getClass().getSimpleName());
+            logger.exception(t);
+            return false;
         }
 
         // no internal exceptions, successfully registered
@@ -89,10 +89,17 @@ public abstract class TracerPlugin extends JavaPlugin {
             registrables.add(registrable);
         }
 
-        registrable.register();
+        try {
+            registrable.register();
+        } catch (Throwable t) {
+            logger.exception(t);
+            return false;
+        }
+
+        return true;
     }
 
-    public void register(Class<? extends Registrable> clazz) {
+    public boolean register(Class<? extends Registrable> clazz) {
         Registrable registrable;
 
         if (Reflection.isSingleton(clazz)) {
@@ -100,38 +107,40 @@ public abstract class TracerPlugin extends JavaPlugin {
 
             if (registrable == null) {
                 logger.error("Failed to register registrable &c%s&r: singleton must have a \"get\" or \"getInstance\" accessor", clazz.getSimpleName());
-                return;
+                return false;
             }
         } else {
             registrable = Reflection.newInstance(clazz);
 
             if (registrable == null) {
                 logger.error("Failed to register registrable &c%s&r: newInstance returned null", clazz.getSimpleName());
-                return;
+                return false;
             }
         }
 
-        register(registrable);
+        return register(registrable);
     }
 
     @SuppressWarnings("unchecked")
-    public void register(Object object) {
+    public boolean register(Object object) {
         if (object == null) {
             logger.error("Failed to register registrable: null");
-            return;
+            return false;
         }
 
         if (object instanceof Registrable) {
-            register((Registrable) object);
+            return register((Registrable) object);
         } else if (object instanceof Class<?> clazz) {
             if (Registrable.class.isAssignableFrom(clazz)) {
-                register((Class<? extends Registrable>) clazz);
+                return register((Class<? extends Registrable>) clazz);
             } else {
                 logger.error("Failed to register registrable &c%s&r: class does not implement Registrable", clazz.getSimpleName());
             }
         } else {
             logger.error("Failed to register registrable &c%s&r: unknown object", object.getClass().getSimpleName());
         }
+
+        return false;
     }
 
     public void register(Iterable<Object> objects) {
@@ -147,8 +156,21 @@ public abstract class TracerPlugin extends JavaPlugin {
     }
 
     public void unregister(Registrable registrable) {
-        registrable.unregister();
-        registrable.internalUnregister();
+        String name = registrable.getClass().getSimpleName();
+
+        try {
+            registrable.unregister();
+        } catch (Throwable t) {
+            logger.error("A throwable was caught while unregistering &c%s&r:", name);
+            logger.exception(t);
+        }
+
+        try {
+            registrable.internalUnregister();
+        } catch (Throwable t) {
+            logger.error("A throwable was caught while unregistering (internal) &c%s&r:", name);
+            logger.exception(t);
+        }
     }
 
     public void reload() {
