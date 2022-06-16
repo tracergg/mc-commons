@@ -206,16 +206,28 @@ public final class Reflection {
     // class
 
     @SuppressWarnings("unchecked")
-    public static <T> Class<T> getClass(String name) {
+    public static <T> Class<T> getClass(String name, boolean initialize, ClassLoader loader) {
         Class<T> clazz = null;
 
         try {
-            clazz = (Class<T>) Class.forName(name);
+            if (loader == null) {
+                clazz = (Class<T>) Class.forName(name);
+            } else {
+                clazz = (Class<T>) Class.forName(name, initialize, loader);
+            }
         } catch (Exception e) {
             // ignored
         }
 
         return clazz;
+    }
+
+    public static <T> Class<T> getClass(String name, ClassLoader loader) {
+        return getClass(name, true, loader);
+    }
+
+    public static <T> Class<T> getClass(String name) {
+        return getClass(name, null);
     }
 
 
