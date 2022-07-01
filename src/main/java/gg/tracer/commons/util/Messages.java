@@ -4,11 +4,12 @@ import org.bukkit.ChatColor;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Bradley Steele
@@ -17,6 +18,8 @@ public final class Messages {
 
     public static final char ALT_COLOR_CODE = '&';
     public static final char BUKKIT_COLOR_CODE = ChatColor.COLOR_CHAR;
+
+    public static final Pattern HEX_PATTERN = Pattern.compile("(?<!\\\\)(&?)(#[a-fA-F0-9]{6})");
 
     private Messages() {}
 
@@ -28,7 +31,27 @@ public final class Messages {
      * @return the colored string.
      */
     public static String color(String s) {
-        return s == null ? null : ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, s);
+        if (s == null) {
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder(s.length());
+        Matcher m = HEX_PATTERN.matcher(s);
+
+        while (m.find()) {
+            String hex = m.group(2);
+            StringBuilder res = new StringBuilder(BUKKIT_COLOR_CODE + "x");
+
+            for (char digit : hex.toCharArray()) {
+                res.append(BUKKIT_COLOR_CODE).append(digit);
+            }
+
+            m.appendReplacement(sb, Matcher.quoteReplacement(res.toString()));
+        }
+
+        m.appendTail(sb);
+
+        return ChatColor.translateAlternateColorCodes(ALT_COLOR_CODE, sb.toString());
     }
 
     public static List<String> color(Iterable<? extends String> it) {
@@ -36,10 +59,21 @@ public final class Messages {
             return null;
         }
 
-        return StreamSupport.stream(it.spliterator(), false)
-                .filter(Objects::nonNull)
-                .map(Messages::color)
-                .collect(Collectors.toList());
+        List<String> out = new ArrayList<>();
+
+        for (String s : it) {
+            if (s == null) {
+                continue;
+            }
+
+            if (s.isEmpty()) {
+                out.add(s);
+            } else {
+                out.add(color(s));
+            }
+        }
+
+        return out;
     }
 
     public static List<String> color(String... args) {
@@ -77,10 +111,23 @@ public final class Messages {
             return null;
         }
 
-        return StreamSupport.stream(it.spliterator(), false)
-                .filter(Objects::nonNull)
-                .map(Messages::uncolor)
-                .collect(Collectors.toList());
+        List<String> out = new ArrayList<>();
+
+        while (it.iterator().hasNext()) {
+            String s = it.iterator().next();
+
+            if (s == null) {
+                continue;
+            }
+
+            if (s.isEmpty()) {
+                out.add(s);
+            } else {
+                out.add(uncolor(s));
+            }
+        }
+
+        return out;
     }
 
     public static List<String> uncolor(String... args) {
