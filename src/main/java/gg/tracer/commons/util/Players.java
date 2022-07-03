@@ -50,7 +50,7 @@ public final class Players {
     }
 
     public static boolean isOnline(CommandSender sender) {
-        return !(sender instanceof OfflinePlayer) || isOnline((OfflinePlayer) sender);
+        return sender != null && !(sender instanceof OfflinePlayer) || isOnline((OfflinePlayer) sender);
     }
 
     public static void sendMessage(CommandSender receiver, String message) {
