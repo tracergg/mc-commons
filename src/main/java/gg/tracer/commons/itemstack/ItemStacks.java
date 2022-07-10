@@ -8,6 +8,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
@@ -163,5 +164,37 @@ public final class ItemStacks {
 
     public static Sound matchSound(String sound) {
         return matchSound(sound, null);
+    }
+
+
+    // damage
+
+    public static boolean isUnbreakable(ItemStack stack) {
+        if (stack == null || !stack.hasItemMeta()) {
+            return false;
+        }
+
+        return stack.getItemMeta().isUnbreakable();
+    }
+
+    public static void damage(ItemStack stack, int damage, boolean ignoreUnbreakable) {
+        if (stack == null || !stack.hasItemMeta()) {
+            return;
+        }
+
+        ItemMeta meta = stack.getItemMeta();
+
+        if (meta.isUnbreakable() && !ignoreUnbreakable) {
+            return;
+        }
+
+        if (meta instanceof Damageable damageable) {
+            damageable.setDamage(damageable.getDamage() + damage);
+            stack.setItemMeta(meta);
+        }
+    }
+
+    public static void damage(ItemStack stack, int damage) {
+        damage(stack, damage, false);
     }
 }
