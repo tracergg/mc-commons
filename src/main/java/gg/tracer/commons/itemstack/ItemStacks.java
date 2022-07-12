@@ -189,9 +189,14 @@ public final class ItemStacks {
         }
 
         if (meta instanceof Damageable damageable) {
-            damageable.setDamage(Math.max(damageable.getDamage() + damage, 0));
-            stack.setItemMeta(meta);
-            return true;
+            int c = damageable.getDamage();
+            int n = Math.max(c + damage, 0);
+
+            if (c != n) {
+                damageable.setDamage(n);
+                stack.setItemMeta(meta);
+                return true;
+            }
         }
 
         return false;
