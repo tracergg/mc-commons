@@ -177,24 +177,27 @@ public final class ItemStacks {
         return stack.getItemMeta().isUnbreakable();
     }
 
-    public static void damage(ItemStack stack, int damage, boolean ignoreUnbreakable) {
+    public static boolean damage(ItemStack stack, int damage, boolean ignoreUnbreakable) {
         if (stack == null || !stack.hasItemMeta()) {
-            return;
+            return false;
         }
 
         ItemMeta meta = stack.getItemMeta();
 
         if (meta.isUnbreakable() && !ignoreUnbreakable) {
-            return;
+            return false;
         }
 
         if (meta instanceof Damageable damageable) {
-            damageable.setDamage(damageable.getDamage() + damage);
+            damageable.setDamage(Math.max(damageable.getDamage() + damage, 0));
             stack.setItemMeta(meta);
+            return true;
         }
+
+        return false;
     }
 
-    public static void damage(ItemStack stack, int damage) {
-        damage(stack, damage, false);
+    public static boolean damage(ItemStack stack, int damage) {
+        return damage(stack, damage, false);
     }
 }
